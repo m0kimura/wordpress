@@ -1,0 +1,45 @@
+version: '2'
+services:
+  nginx:
+    image: nginx:1.12-alpine
+    container_name: wp-nginx
+    volumes:
+      - wordpress-data:/var/www/html/:ro
+      - ./nginx/conf/nginx.conf:/etc/nginx/conf/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - front
+  php:
+    image: evild/alpine-wordpress:4.5.3
+    container_name: wp-php
+    volumes:
+      - wordpress-data:/var/www/html
+      - ./php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    environment:
+      - WORDPRESS_DB_NAME=wpdb
+      - WORDPRESS_TABLE_PREFIX=wp_
+      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_PASSWORD=wordpress
+    networks:
+      - front
+      - back
+  db:
+    image: mysql
+    container_name: wp-mysql
+    volumes:
+      - wordpress-db-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=wordpress
+    networks:
+      - back
+volumes:
+  wordpress-data:
+    driver: local
+  wordpress-db-data:
+    driver: local
+networks:
+  front:
+  back:
